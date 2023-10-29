@@ -1,0 +1,14 @@
+{{define "body"}}
+<div>
+    this is a test of a nested template
+</div>
+<button 
+    hx-post="http://localhost:8080/events" 
+    hx-swap="none"
+    hx-vals="js:{dates: [new Date().toISOString().slice(0,10)], type: 'in'}"
+>
+    check in
+</button>
+{{end}}
+
+

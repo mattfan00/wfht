@@ -2,8 +2,6 @@ package util
 
 import "time"
 
-const GOAL = 3
-
 type Date struct {
 	time.Time
 }
@@ -16,4 +14,3 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 	d.Time = date
 	return nil
 }
-

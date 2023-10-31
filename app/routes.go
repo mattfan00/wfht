@@ -14,6 +14,9 @@ import (
 func (a *App) Routes() *chi.Mux {
 	router := chi.NewRouter()
 
+	staticFileServer := http.FileServer(http.Dir("./ui/static"))
+	router.Handle("/static/*", http.StripPrefix("/static/", staticFileServer))
+
 	router.Get("/", a.getHome)
 	router.Post("/events", a.createEvents)
 
@@ -26,8 +29,8 @@ type HomeData struct {
 
 func (a *App) getHome(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles(
-		"./public/views/base.html",
-		"./public/views/pages/home.html",
+		"./ui/views/base.html",
+		"./ui/views/pages/home.html",
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -62,7 +65,6 @@ func (a *App) getHome(w http.ResponseWriter, r *http.Request) {
 		"CheckedInToday":   checkedInToday,
 		"NumCheckIn":       numCheckIn,
 		"NumOff":           numOff,
-		"CurrDate":         currDate.Format("2006-01-02"),
 	})
 }
 
@@ -93,7 +95,12 @@ func (a *App) createEvents(w http.ResponseWriter, r *http.Request) {
 			IsSys: false,
 		})
 	}
-	a.eventStore.UpsertMultiple(newEvents)
+
+	err = a.eventStore.UpsertMultiple(newEvents)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Add("HX-Redirect", "/")
 	w.Write(nil)

@@ -6,7 +6,7 @@
 <button 
     hx-post="http://localhost:8080/events" 
     hx-swap="none"
-    hx-vals="js:{dates: ['{{.CurrDate}}'], type: {{.EventTypeCheckIn}}}"
+    hx-vals="js:{dates: [formatDate(new Date())], type: {{.EventTypeCheckIn}}}"
     {{if .CheckedInToday}}disabled{{end}}
 >
     {{if not .CheckedInToday}}
@@ -16,5 +16,3 @@
     {{end}}
 </button>
 {{end}}
-
-

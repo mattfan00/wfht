@@ -36,9 +36,10 @@ func main() {
 func create() {
 	db.MustExec(`
         CREATE TABLE IF NOT EXISTS event (
-            date DATETIME NOT NULL,
+            date DATETIME PRIMARY KEY,
             type INT NOT NULL,
-            is_sys INT NOT NULL
+            is_sys INT NOT NULL,
+            updated_on DATETIME NOT NULL
         )
     `)
 }
@@ -46,17 +47,19 @@ func create() {
 func mock() {
 	db.MustExec("DELETE FROM event WHERE is_sys = true")
 
+	currTime := time.Now()
+
 	ratio := 3.0 / 7.0
-	numDaysSoFar := time.Now().YearDay()
+	numDaysSoFar := currTime.YearDay()
 	numDays := int(math.Ceil(ratio * float64(numDaysSoFar)))
 
-	currYear := time.Now().Year()
+	currYear := currTime.Year()
 	d := time.Date(currYear, 1, 1, 0, 0, 0, 0, time.UTC)
 	for i := 0; i < numDays; i++ {
 		db.MustExec(`
-            INSERT INTO event (date, type, is_sys)
-            VALUES ($1, $2, $3)
-        `, d, 0, true)
+            INSERT INTO event (date, type, is_sys, updated_on)
+            VALUES ($1, $2, $3, $4)
+        `, d, 0, true, currTime)
 		d = d.Add(time.Hour * 24)
 	}
 

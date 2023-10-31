@@ -1,13 +1,19 @@
 {{define "body"}}
 <div>
-    this is a test of a nested template
+    <div>{{.NumCheckIn}}</div>
+    <div>{{.NumOff}}</div>
 </div>
 <button 
     hx-post="http://localhost:8080/events" 
     hx-swap="none"
-    hx-vals="js:{dates: [new Date().toISOString().slice(0,10)], type: 'in'}"
+    hx-vals="js:{dates: ['{{.CurrDate}}'], type: {{.EventTypeCheckIn}}}"
+    {{if .CheckedInToday}}disabled{{end}}
 >
-    check in
+    {{if not .CheckedInToday}}
+        check in
+    {{else}}
+        checked in today
+    {{end}}
 </button>
 {{end}}
 

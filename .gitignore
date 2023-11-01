@@ -1,3 +1,6 @@
-config.yaml
 node_modules/
+tmp/
+
 ui/static/index.css
+
+config.yaml

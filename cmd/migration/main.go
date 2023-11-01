@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math"
@@ -8,10 +9,9 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/mattfan00/wfht/config"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-const DB_CONN = "/Users/matthewfan/sqlite/db/wfht.db"
 
 var db *sqlx.DB
 
@@ -20,10 +20,16 @@ func main() {
 		panic("incorrect num of args")
 	}
 
+	configPath := flag.String("c", "./config.yaml", "path to config file")
+	conf, err := config.ReadFile(*configPath)
+	if err != nil {
+		panic(err)
+	}
+
 	action := os.Args[1]
 
-	db = sqlx.MustConnect("sqlite3", DB_CONN)
-	log.Printf("connected to DB: %s\n", DB_CONN)
+	db = sqlx.MustConnect("sqlite3", conf.DbConn)
+	log.Printf("connected to DB: %s\n", conf.DbConn)
 
 	switch action {
 	case "create":

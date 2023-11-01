@@ -1,30 +1,38 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/mattfan00/wfht/app"
+	"github.com/mattfan00/wfht/config"
 	"github.com/mattfan00/wfht/store"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const PORT = 8080
-const DB_CONN = "/Users/matthewfan/sqlite/db/wfht.db"
-
 func main() {
-	db, err := sqlx.Connect("sqlite3", DB_CONN)
+	configPath := flag.String("c", "./config.yaml", "path to config file")
+	port := flag.Int("p", 8080, "port")
+	flag.Parse()
+
+	conf, err := config.ReadFile(*configPath)
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("connected to DB: %s\n", DB_CONN)
+
+	db, err := sqlx.Connect("sqlite3", conf.DbConn)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("connected to DB: %s\n", conf.DbConn)
 
 	eventStore := store.NewEventStore(db)
 
 	a := app.New(eventStore)
 
-	log.Printf("listening on port %d\n", PORT)
-	http.ListenAndServe(fmt.Sprintf(":%d", PORT), a.Routes())
+	log.Printf("listening on port %d\n", *port)
+	http.ListenAndServe(fmt.Sprintf(":%d", *port), a.Routes())
 }

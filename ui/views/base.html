@@ -6,9 +6,15 @@
     <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
     <script src="/static/index.js"></script>
+    <link rel="stylesheet" href="/static/index.css">
 </head>
-<body hx-ext="json-enc">
-    {{template "body" .}}
+<body 
+    hx-ext="json-enc"
+    class="flex justify-center"
+>
+    <div class="max-w-sm w-full mt-10">
+        {{template "body" .}}
+    </div>
 </body>
 </html>
 

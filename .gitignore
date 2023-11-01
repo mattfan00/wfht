@@ -1,1 +1,3 @@
 config.yaml
+node_modules/
+ui/static/index.css

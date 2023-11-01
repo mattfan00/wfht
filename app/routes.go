@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"html/template"
+	"math"
 	"net/http"
 	"time"
 
@@ -44,15 +45,12 @@ func (a *App) getHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	numCheckIn := 0
-	numOff := 0
 	checkedInToday := false
 	currTime := time.Now()
 	currDate := time.Date(currTime.Year(), currTime.Month(), currTime.Day(), 0, 0, 0, 0, time.UTC)
 	for _, event := range events {
 		if event.Type == store.EventTypeCheckIn {
 			numCheckIn++
-		} else if event.Type == store.EventTypeOff {
-			numOff++
 		}
 
 		if event.Date.Equal(currDate) {
@@ -60,11 +58,17 @@ func (a *App) getHome(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	numDaysSoFar := currTime.YearDay()
+	currRatio := float64(numCheckIn) / float64(numDaysSoFar)
+	currAvgCheckIn := currRatio * 7
+	numDaysGoal := math.Ceil(365 * (3.0 / 7.0))
+
 	t.Execute(w, map[string]any{
 		"EventTypeCheckIn": store.EventTypeCheckIn,
 		"CheckedInToday":   checkedInToday,
+		"CurrAvgCheckIn":   currAvgCheckIn,
+		"NumDaysGoal":      numDaysGoal,
 		"NumCheckIn":       numCheckIn,
-		"NumOff":           numOff,
 	})
 }
 

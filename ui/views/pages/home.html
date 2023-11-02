@@ -1,18 +1,27 @@
 {{define "body"}}
-<div>
-    <div>{{.NumCheckIn}} / {{.NumDaysGoal}}</div>
-    <div>{{printf "%.2f" .CurrAvgCheckIn}}</div>
+<div class="flex flex-col gap-5 mb-8">
+    <div>
+        <div>Current in-person average:</div>
+        <div class="font-bold text-2xl">{{printf "%.2f" .CurrAvgCheckIn}}</div>
+    </div>
+    <div>
+        <div>Num days checked in:</div>
+        <div><span class="font-bold text-2xl">{{.NumCheckIn}}</span> / {{.NumDaysGoal}}</div>
+    </div>
 </div>
-<button 
-    hx-post="http://localhost:8080/events" 
-    hx-swap="none"
-    hx-vals="js:{dates: [formatDate(new Date())], type: {{.EventTypeCheckIn}}}"
-    {{if .CheckedInToday}}disabled{{end}}
->
-    {{if not .CheckedInToday}}
-        check in
-    {{else}}
-        checked in today
-    {{end}}
-</button>
+<div class="flex justify-center">
+    <button 
+        hx-post="http://localhost:8080/events" 
+        hx-swap="none"
+        hx-vals="js:{dates: [formatDate(new Date())], type: {{.EventTypeCheckIn}}}"
+        {{if .CheckedInToday}}disabled{{end}}
+        class="bg-gray-100 px-3 py-1.5 rounded hover:bg-gray-200 w-full"
+    >
+        {{if not .CheckedInToday}}
+            Check In
+        {{else}}
+            Checked In Today
+        {{end}}
+    </button>
+</div>
 {{end}}

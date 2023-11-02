@@ -1,0 +1,15 @@
+{{define "body"}}
+<div class="">
+    <div class="grid grid-cols-7 auto-rows-[2rem] text-sm">
+        {{range .Calendar}}
+            {{if sameMonth .Date $.CurrDate}}
+            <div class="flex justify-center items-center cursor-pointer">
+                {{.Date.Format "2"}}
+            </div>
+            {{else}}
+            <div></div>
+            {{end}}
+        {{end}}
+    </div>
+</div>
+{{end}}

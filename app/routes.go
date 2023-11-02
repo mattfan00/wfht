@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"math"
 	"net/http"
@@ -18,17 +19,19 @@ func (a *App) Routes() *chi.Mux {
 	staticFileServer := http.FileServer(http.Dir("./ui/static"))
 	router.Handle("/static/*", http.StripPrefix("/static/", staticFileServer))
 
-	router.Get("/", a.getHome)
+	router.Get("/", a.getHomePage)
+	router.Get("/calendar", a.getCalendarPage)
 	router.Post("/events", a.createEvents)
 
 	return router
 }
 
-type HomeData struct {
-	SubmitEventType store.EventType
+func CurrDate() time.Time {
+	currTime := time.Now()
+	return time.Date(currTime.Year(), currTime.Month(), currTime.Day(), 0, 0, 0, 0, time.UTC)
 }
 
-func (a *App) getHome(w http.ResponseWriter, r *http.Request) {
+func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles(
 		"./ui/views/base.html",
 		"./ui/views/pages/home.html",
@@ -46,8 +49,7 @@ func (a *App) getHome(w http.ResponseWriter, r *http.Request) {
 
 	numCheckIn := 0
 	checkedInToday := false
-	currTime := time.Now()
-	currDate := time.Date(currTime.Year(), currTime.Month(), currTime.Day(), 0, 0, 0, 0, time.UTC)
+	currDate := CurrDate()
 	for _, event := range events {
 		if event.Type == store.EventTypeCheckIn {
 			numCheckIn++
@@ -58,7 +60,7 @@ func (a *App) getHome(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	numDaysSoFar := currTime.YearDay()
+	numDaysSoFar := currDate.YearDay()
 	currRatio := float64(numCheckIn) / float64(numDaysSoFar)
 	currAvgCheckIn := currRatio * 7
 	numDaysGoal := math.Ceil(365 * (3.0 / 7.0))
@@ -69,6 +71,63 @@ func (a *App) getHome(w http.ResponseWriter, r *http.Request) {
 		"CurrAvgCheckIn":   currAvgCheckIn,
 		"NumDaysGoal":      numDaysGoal,
 		"NumCheckIn":       numCheckIn,
+	})
+}
+
+type CalendarItem struct {
+	Date time.Time
+}
+
+func sameMonth(d1 time.Time, d2 time.Time) bool {
+	return d1.Month() == d2.Month()
+}
+
+func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
+	t := template.New("base.html")
+
+	t.Funcs(template.FuncMap{
+		"sameMonth": sameMonth,
+	})
+
+	t, err := t.ParseFiles(
+		"./ui/views/base.html",
+		"./ui/views/pages/calendar.html",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	currDate := CurrDate()
+	firstOfMonthDate := time.Date(currDate.Year(), currDate.Month(), 1, 0, 0, 0, 0, currDate.Location())
+	lastOfMonthDate := firstOfMonthDate.AddDate(0, 1, -1)
+
+	calendar := []CalendarItem{}
+
+	// previous month
+	for i := int(firstOfMonthDate.Weekday()); i > 0; i-- {
+		calendar = append(calendar, CalendarItem{
+			firstOfMonthDate.AddDate(0, 0, -i),
+		})
+	}
+
+	// current month
+	for i := 0; i < lastOfMonthDate.Day(); i++ {
+		calendar = append(calendar, CalendarItem{
+			firstOfMonthDate.AddDate(0, 0, i),
+		})
+	}
+
+	// next month
+	for i := 1; i < 7-int(lastOfMonthDate.Weekday()); i++ {
+		calendar = append(calendar, CalendarItem{
+			lastOfMonthDate.AddDate(0, 0, i),
+		})
+	}
+
+	t.Execute(w, map[string]any{
+		"Calendar": calendar,
+		"CurrDate": currDate,
 	})
 }
 

@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"math"
 	"net/http"
@@ -74,10 +73,6 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-type CalendarItem struct {
-	Date time.Time
-}
-
 func sameMonth(d1 time.Time, d2 time.Time) bool {
 	return d1.Month() == d2.Month()
 }
@@ -99,29 +94,47 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	currDate := CurrDate()
+
+	eventMap, err := a.eventStore.GetByYearMonth(currDate.Year(), currDate.Month())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	firstOfMonthDate := time.Date(currDate.Year(), currDate.Month(), 1, 0, 0, 0, 0, currDate.Location())
 	lastOfMonthDate := firstOfMonthDate.AddDate(0, 1, -1)
 
-	calendar := []CalendarItem{}
+	calendar := []store.Event{}
 
 	// previous month
 	for i := int(firstOfMonthDate.Weekday()); i > 0; i-- {
-		calendar = append(calendar, CalendarItem{
-			firstOfMonthDate.AddDate(0, 0, -i),
+		calendar = append(calendar, store.Event{
+			Date: firstOfMonthDate.AddDate(0, 0, -i),
+			Type: store.EventTypeNone,
 		})
 	}
 
 	// current month
 	for i := 0; i < lastOfMonthDate.Day(); i++ {
-		calendar = append(calendar, CalendarItem{
-			firstOfMonthDate.AddDate(0, 0, i),
-		})
+		var e store.Event
+		d := firstOfMonthDate.AddDate(0, 0, i)
+		val, ok := eventMap[d]
+		if ok {
+			e = val
+		} else {
+			e = store.Event{
+				Date: d,
+				Type: store.EventTypeNone,
+			}
+		}
+		calendar = append(calendar, e)
 	}
 
 	// next month
 	for i := 1; i < 7-int(lastOfMonthDate.Weekday()); i++ {
-		calendar = append(calendar, CalendarItem{
-			lastOfMonthDate.AddDate(0, 0, i),
+		calendar = append(calendar, store.Event{
+			Date: lastOfMonthDate.AddDate(0, 0, i),
+			Type: store.EventTypeNone,
 		})
 	}
 

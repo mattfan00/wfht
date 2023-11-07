@@ -1,7 +1,9 @@
 package store
 
 import (
+	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -12,11 +14,12 @@ type EventType int
 const (
 	EventTypeCheckIn EventType = iota
 	EventTypeOff
+	EventTypeNone
 )
 
 func (et EventType) IsValid() bool {
 	switch et {
-	case EventTypeCheckIn, EventTypeOff:
+	case EventTypeCheckIn, EventTypeOff, EventTypeNone:
 		return true
 	}
 	return false
@@ -74,22 +77,55 @@ func (es *EventStore) UpsertMultiple(events []Event) error {
 	return err
 }
 
-func (es *EventStore) GetByCurrYear() ([]Event, error) {
-	events := []Event{}
-
-	stmt := `
+func generateEventStmt(clause string) string {
+	return fmt.Sprintf(`
         SELECT 
             date,
             type,
             is_sys
         FROM event
-        WHERE strftime('%Y', $1)
-    `
-	args := []any{time.Now().Year()}
+        %s
+    `, clause)
+}
+
+func (es *EventStore) GetByCurrYear() ([]Event, error) {
+	events := []Event{}
+
+	stmt := generateEventStmt(`
+        WHERE strftime('%Y', date) = $1
+    `)
+
+	args := []any{
+		strconv.Itoa(time.Now().Year()),
+	}
 	err := es.db.Select(&events, stmt, args...)
 	if err != nil {
 		return []Event{}, err
 	}
 
 	return events, nil
+}
+
+func (es *EventStore) GetByYearMonth(year int, month time.Month) (map[time.Time]Event, error) {
+	events := []Event{}
+
+	stmt := generateEventStmt(`
+        WHERE strftime('%Y', date) = $1 AND strftime('%m', date) = $2
+    `)
+
+	args := []any{
+		strconv.Itoa(year),
+		strconv.Itoa(int(month)),
+	}
+	err := es.db.Select(&events, stmt, args...)
+	if err != nil {
+		return map[time.Time]Event{}, err
+	}
+
+	r := map[time.Time]Event{}
+	for _, event := range events {
+		r[event.Date] = event
+	}
+
+	return r, nil
 }

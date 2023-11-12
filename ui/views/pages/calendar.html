@@ -3,7 +3,13 @@
     <div class="grid grid-cols-7 gap-1 auto-rows-[2rem] text-sm">
         {{range .Calendar}}
             {{if sameMonth .Date $.CurrDate}}
-            <div class="flex justify-center items-center cursor-pointer bg-gray-50 rounded">
+            <div 
+                class="
+                    flex justify-center items-center cursor-pointer rounded
+                    {{if .IsCheckIn}}bg-green-400
+                    {{else}}bg-gray-50
+                    {{end}}
+                ">
                 {{.Date.Format "2"}}
             </div>
             {{else}}

@@ -32,6 +32,10 @@ type Event struct {
 	UpdatedOn time.Time `db:"updated_on"`
 }
 
+func (e *Event) IsCheckIn() bool {
+    return e.Type == EventTypeCheckIn
+}
+
 type EventStore struct {
 	db *sqlx.DB
 }

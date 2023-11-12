@@ -78,7 +78,7 @@ func sameMonth(d1 time.Time, d2 time.Time) bool {
 }
 
 func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
-	t := template.New("base.html")
+	t := template.New("")
 
 	t.Funcs(template.FuncMap{
 		"sameMonth": sameMonth,
@@ -138,7 +138,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	t.Execute(w, map[string]any{
+	t.ExecuteTemplate(w, "base.html", map[string]any{
 		"Calendar": calendar,
 		"CurrDate": currDate,
 	})

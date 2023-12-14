@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/rickb777/date/v2"
 )
 
 type EventType int
@@ -26,14 +27,14 @@ func (et EventType) IsValid() bool {
 }
 
 type Event struct {
-	Date      time.Time `db:"date"`
+	Date      date.Date `db:"date"`
 	Type      EventType `db:"type"`
 	IsSys     bool      `db:"is_sys"`
 	UpdatedOn time.Time `db:"updated_on"`
 }
 
 func (e *Event) IsCheckIn() bool {
-    return e.Type == EventTypeCheckIn
+	return e.Type == EventTypeCheckIn
 }
 
 type EventStore struct {
@@ -110,7 +111,7 @@ func (es *EventStore) GetByCurrYear() ([]Event, error) {
 	return events, nil
 }
 
-func (es *EventStore) GetByYearMonth(year int, month time.Month) (map[time.Time]Event, error) {
+func (es *EventStore) GetByYearMonth(year int, month time.Month) (map[date.Date]Event, error) {
 	events := []Event{}
 
 	stmt := generateEventStmt(`
@@ -123,10 +124,10 @@ func (es *EventStore) GetByYearMonth(year int, month time.Month) (map[time.Time]
 	}
 	err := es.db.Select(&events, stmt, args...)
 	if err != nil {
-		return map[time.Time]Event{}, err
+		return map[date.Date]Event{}, err
 	}
 
-	r := map[time.Time]Event{}
+	r := map[date.Date]Event{}
 	for _, event := range events {
 		r[event.Date] = event
 	}

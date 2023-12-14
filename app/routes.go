@@ -5,11 +5,10 @@ import (
 	"html/template"
 	"math"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/mattfan00/wfht/store"
-	"github.com/mattfan00/wfht/util"
+	"github.com/rickb777/date/v2"
 )
 
 func (a *App) Routes() *chi.Mux {
@@ -23,11 +22,6 @@ func (a *App) Routes() *chi.Mux {
 	router.Post("/events", a.createEvents)
 
 	return router
-}
-
-func CurrDate() time.Time {
-	currTime := time.Now()
-	return time.Date(currTime.Year(), currTime.Month(), currTime.Day(), 0, 0, 0, 0, time.UTC)
 }
 
 func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
@@ -48,13 +42,13 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 
 	numCheckIn := 0
 	checkedInToday := false
-	currDate := CurrDate()
+	currDate := date.Today()
 	for _, event := range events {
 		if event.Type == store.EventTypeCheckIn {
 			numCheckIn++
 		}
 
-		if event.Date.Equal(currDate) {
+		if event.Date == currDate {
 			checkedInToday = true
 		}
 	}
@@ -73,7 +67,7 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func sameMonth(d1 time.Time, d2 time.Time) bool {
+func sameMonth(d1 date.Date, d2 date.Date) bool {
 	return d1.Month() == d2.Month()
 }
 
@@ -93,7 +87,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currDate := CurrDate()
+	currDate := date.Today()
 
 	eventMap, err := a.eventStore.GetByYearMonth(currDate.Year(), currDate.Month())
 	if err != nil {
@@ -101,7 +95,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	firstOfMonthDate := time.Date(currDate.Year(), currDate.Month(), 1, 0, 0, 0, 0, currDate.Location())
+	firstOfMonthDate := date.New(currDate.Year(), currDate.Month(), 1)
 	lastOfMonthDate := firstOfMonthDate.AddDate(0, 1, -1)
 
 	calendar := []store.Event{}
@@ -145,7 +139,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 }
 
 type EventRequest struct {
-	Dates []util.Date     `json:"dates"`
+	Dates []date.Date     `json:"dates"`
 	Type  store.EventType `json:"type"`
 }
 
@@ -166,7 +160,7 @@ func (a *App) createEvents(w http.ResponseWriter, r *http.Request) {
 	newEvents := []store.Event{}
 	for _, date := range req.Dates {
 		newEvents = append(newEvents, store.Event{
-			Date:  date.Time,
+			Date:  date,
 			Type:  req.Type,
 			IsSys: false,
 		})

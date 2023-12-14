@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/mattfan00/wfht/config"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rickb777/date/v2"
 )
 
 var db *sqlx.DB
@@ -42,7 +43,7 @@ func main() {
 func create() {
 	db.MustExec(`
         CREATE TABLE IF NOT EXISTS event (
-            date DATETIME PRIMARY KEY,
+            date DATE PRIMARY KEY,
             type INT NOT NULL,
             is_sys INT NOT NULL,
             updated_on DATETIME NOT NULL
@@ -53,20 +54,22 @@ func create() {
 func mock() {
 	db.MustExec("DELETE FROM event WHERE is_sys = true")
 
-	currTime := time.Now()
+    currDay := date.Today()
+    currTime := time.Now()
 
 	ratio := 3.0 / 7.0
-	numDaysSoFar := currTime.YearDay()
+	numDaysSoFar := currDay.YearDay()
 	numDays := int(math.Ceil(ratio * float64(numDaysSoFar)))
 
-	currYear := currTime.Year()
-	d := time.Date(currYear, 1, 1, 0, 0, 0, 0, time.UTC)
+	currYear := currDay.Year()
+
+    d := date.New(currYear, 1, 1)
 	for i := 0; i < numDays; i++ {
 		db.MustExec(`
             INSERT INTO event (date, type, is_sys, updated_on)
             VALUES ($1, $2, $3, $4)
         `, d, 0, true, currTime)
-		d = d.Add(time.Hour * 24)
+        d = d + 1
 	}
 
 	fmt.Println(ratio)

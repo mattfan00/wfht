@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"html/template"
+	"log"
 	"math"
 	"net/http"
 
@@ -133,8 +134,9 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t.ExecuteTemplate(w, "base.html", map[string]any{
-		"Calendar": calendar,
-		"CurrDate": currDate,
+		"Calendar":         calendar,
+		"CurrDate":         currDate,
+		"EventTypeCheckIn": store.EventTypeCheckIn,
 	})
 }
 
@@ -156,6 +158,8 @@ func (a *App) createEvents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid event type", http.StatusInternalServerError)
 		return
 	}
+
+    log.Printf("%+v", req)
 
 	newEvents := []store.Event{}
 	for _, date := range req.Dates {

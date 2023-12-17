@@ -137,6 +137,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 		"Calendar":         calendar,
 		"CurrDate":         currDate,
 		"EventTypeCheckIn": store.EventTypeCheckIn,
+		"EventTypeNone":    store.EventTypeNone,
 	})
 }
 
@@ -159,7 +160,7 @@ func (a *App) createEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    log.Printf("%+v", req)
+	log.Printf("%+v", req)
 
 	newEvents := []store.Event{}
 	for _, date := range req.Dates {

@@ -1,7 +1,9 @@
 document.addEventListener("alpine:init", () => {
     Alpine.data("calendar", () => ({
         selected: [],
-        type: 0,
+        isDisabled() {
+            return this.selected.length == 0
+        },
         isSelected(d) {
             return this.selected.includes(d)
         },

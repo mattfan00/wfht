@@ -15,12 +15,21 @@
             {{end}}
         {{end}}
     </div>
-    <button
-        x-on:click="submitSelected"
-        class="bg-gray-100 px-3 py-1.5 rounded hover:bg-gray-200 w-full"
-        :disabled="selected.length == 0"
-    >
-        Check In
-    </button>
+    <div class="flex gap-2">
+        <button
+            x-on:click="submitSelected({{.EventTypeNone}})"
+            class="px-3 py-1.5 rounded w-full"
+            :disabled="isDisabled"
+        >
+            Cancel
+        </button>
+        <button
+            x-on:click="submitSelected({{.EventTypeCheckIn}})"
+            class="bg-gray-100 px-3 py-1.5 rounded w-full"
+            :disabled="isDisabled"
+        >
+            Check In
+        </button>
+    </div>
 </div>
 {{end}}

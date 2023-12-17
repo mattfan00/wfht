@@ -1,31 +1,12 @@
 {{define "body"}}
-<div x-data="{ 
-    selected: [],
-    isSelected(d) {
-        return this.selected.includes(d)
-    },
-    submitSelected() {
-        htmx.ajax('POST', '/events', {
-            values: {
-                dates: this.selected, 
-                type: {{.EventTypeCheckIn}}
-            }
-        })
-    }
-}">
+<div x-data="calendar">
     <div class="grid grid-cols-7 gap-1 auto-rows-[2rem] text-sm mb-8">
         {{range .Calendar}}
             {{if sameMonth .Date $.CurrDate}}
             <div 
                 class="flex justify-center items-center cursor-pointer rounded font-medium"
-                :class="{
-                    'bg-green-300': {{.IsCheckIn}} && !isSelected('{{.Date}}'),
-                    'bg-black text-white': isSelected('{{.Date}}') 
-                }"
-                x-on:click="
-                    if (!isSelected('{{.Date}}')) selected.push('{{.Date}}')
-                    else selected.splice(selected.indexOf('{{.Date}}'), 1)
-                "
+                :class="eventStyle({{.IsCheckIn}}, '{{.Date}}')"
+                x-on:click="addSelected('{{.Date}}')"
             >
                 {{.Date.Format "2"}}
             </div>

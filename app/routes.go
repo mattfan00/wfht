@@ -47,11 +47,12 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	for _, event := range events {
 		if event.Type == store.EventTypeCheckIn {
 			numCheckIn++
+
+			if event.Date == currDate {
+				checkedInToday = true
+			}
 		}
 
-		if event.Date == currDate {
-			checkedInToday = true
-		}
 	}
 
 	numDaysSoFar := currDate.YearDay()
@@ -68,18 +69,8 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func sameMonth(d1 date.Date, d2 date.Date) bool {
-	return d1.Month() == d2.Month()
-}
-
 func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
-	t := template.New("")
-
-	t.Funcs(template.FuncMap{
-		"sameMonth": sameMonth,
-	})
-
-	t, err := t.ParseFiles(
+	t, err := template.ParseFiles(
 		"./ui/views/base.html",
 		"./ui/views/pages/calendar.html",
 	)
@@ -133,7 +124,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	t.ExecuteTemplate(w, "base.html", map[string]any{
+	t.Execute(w, map[string]any{
 		"Calendar":         calendar,
 		"CurrDate":         currDate,
 		"EventTypeCheckIn": store.EventTypeCheckIn,

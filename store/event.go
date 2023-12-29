@@ -2,7 +2,6 @@ package store
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -31,6 +30,7 @@ type Event struct {
 	Type      EventType `db:"type"`
 	IsSys     bool      `db:"is_sys"`
 	UpdatedOn time.Time `db:"updated_on"`
+	Display   bool
 }
 
 func (e *Event) IsCheckIn() bool {
@@ -56,7 +56,6 @@ func (es *EventStore) UpsertMultiple(events []Event) error {
 
 	currTime := time.Now()
 	for _, event := range events {
-		log.Printf("upserting event: %+v", event)
 		stmt := `
             INSERT INTO event (date, type, is_sys, updated_on)
             VALUES ($1, $2, $3, $4)
@@ -120,7 +119,7 @@ func (es *EventStore) GetByYearMonth(year int, month time.Month) (map[date.Date]
 
 	args := []any{
 		strconv.Itoa(year),
-		strconv.Itoa(int(month)),
+		fmt.Sprintf("%02d", int(month)),
 	}
 	err := es.db.Select(&events, stmt, args...)
 	if err != nil {

@@ -1,47 +1,24 @@
 {{define "body"}}
 <div class="flex gap-2 mb-4">
-    <select class="bg-white border rounded px-3 py-1.5 flex-1">
-        <option>January</option>
-        <option>February</option>
-    </select>
-    <select class="bg-white border rounded px-3 py-1.5 flex-1">
-        <option>2023</option>
-        <option>2024</option>
-    </select>
-</div>
-<div x-data="calendar">
-    <div 
-        class="grid grid-cols-7 gap-1 auto-rows-[2rem] text-sm mb-6"
+    <select 
+        class="bg-white border rounded px-3 py-1.5 flex-1"
+        name="month"
+        hx-get="/calendar/partial"
+        hx-target="#calendar"
+        hx-swap="innerHTML"
     >
-        {{range .Calendar}}
-            {{if eq .Date.Month $.CurrDate.Month}}
-            <div 
-                class="flex justify-center items-center cursor-pointer rounded font-medium"
-                :class="eventStyle({{.IsCheckIn}}, '{{.Date}}')"
-                x-on:click="addSelected('{{.Date}}')"
+        {{range .CalendarOptions}}
+            <option 
+                value="{{.Value}}" 
+                selected={{.IsSelected}}
             >
-                {{.Date.Format "2"}}
-            </div>
-            {{else}}
-            <div></div>
-            {{end}}
+                {{.Month}}
+            </option>
         {{end}}
-    </div>
-    <div class="flex gap-2">
-        <button
-            x-on:click="submitSelected({{.EventTypeNone}})"
-            class="btn flex-1"
-            :disabled="isDisabled"
-        >
-            Cancel
-        </button>
-        <button
-            x-on:click="submitSelected({{.EventTypeCheckIn}})"
-            class="btn btn-primary flex-1"
-            :disabled="isDisabled"
-        >
-            Check In
-        </button>
-    </div>
+    </select>
+    <div id="test"></div>
+</div>
+<div id="calendar">
+    {{template "calendar" .}}
 </div>
 {{end}}

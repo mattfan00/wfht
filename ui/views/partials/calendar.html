@@ -1,0 +1,37 @@
+{{define "calendar"}}
+<div x-data="calendar">
+    <div 
+        class="grid grid-cols-7 gap-1 auto-rows-[2rem] text-sm mb-6"
+    >
+        {{range .Calendar}}
+            {{if .Display}}
+            <div 
+                class="flex justify-center items-center cursor-pointer rounded font-medium"
+                :class="eventStyle({{.IsCheckIn}}, '{{.Date}}')"
+                x-on:click="addSelected('{{.Date}}')"
+            >
+                {{.Date.Format "2"}}
+            </div>
+            {{else}}
+            <div></div>
+            {{end}}
+        {{end}}
+    </div>
+    <div class="flex gap-2">
+        <button
+            x-on:click="submitSelected({{.EventTypeNone}})"
+            class="btn flex-1"
+            :disabled="isDisabled"
+        >
+            Cancel
+        </button>
+        <button
+            x-on:click="submitSelected({{.EventTypeCheckIn}})"
+            class="btn btn-primary flex-1"
+            :disabled="isDisabled"
+        >
+            Check In
+        </button>
+    </div>
+</div>
+{{end}}

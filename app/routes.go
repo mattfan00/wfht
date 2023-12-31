@@ -61,7 +61,7 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	currAvgCheckIn := currRatio * 7
 	numDaysGoal := math.Ceil(365 * (3.0 / 7.0))
 
-	t.Execute(w, map[string]any{
+	t.ExecuteTemplate(w, "base", map[string]any{
 		"EventTypeCheckIn": store.EventTypeCheckIn,
 		"CheckedInToday":   checkedInToday,
 		"CurrAvgCheckIn":   currAvgCheckIn,
@@ -80,7 +80,6 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles(
 		"./ui/views/base.html",
 		"./ui/views/pages/calendar.html",
-		"./ui/views/partials/calendar.html",
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -106,7 +105,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 
 	data["CalendarOptions"] = calendarOptions
 
-	t.Execute(w, data)
+	t.ExecuteTemplate(w, "base", data)
 }
 
 func (a *App) getCalendarPartial(w http.ResponseWriter, r *http.Request) {
@@ -118,10 +117,10 @@ func (a *App) getCalendarPartial(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t, err := template.ParseFiles(
-		"./ui/views/partials/calendar.html",
+		"./ui/views/pages/calendar.html",
 	)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+        http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

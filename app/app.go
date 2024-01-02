@@ -1,7 +1,9 @@
 package app
 
 import (
+	"bytes"
 	"html/template"
+	"net/http"
 	"path/filepath"
 
 	"github.com/mattfan00/wfht/store"
@@ -12,7 +14,10 @@ type App struct {
 	templates  map[string]*template.Template
 }
 
-func New(eventStore *store.EventStore, templates map[string]*template.Template) *App {
+func New(
+	eventStore *store.EventStore,
+	templates map[string]*template.Template,
+) *App {
 	return &App{
 		eventStore: eventStore,
 		templates:  templates,
@@ -41,4 +46,28 @@ func NewTemplates() (map[string]*template.Template, error) {
 	}
 
 	return templates, nil
+}
+
+func (a *App) render(
+	w http.ResponseWriter,
+	template string,
+	templateName string,
+	data any,
+) {
+	t, ok := a.templates[template]
+	if !ok {
+		http.Error(w, "template not found", http.StatusInternalServerError)
+		return
+	}
+
+	buf := new(bytes.Buffer)
+
+	err := t.ExecuteTemplate(buf, templateName, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	buf.WriteTo(w)
+
 }

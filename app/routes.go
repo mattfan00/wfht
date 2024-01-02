@@ -51,7 +51,7 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	currAvgCheckIn := currRatio * 7
 	numDaysGoal := math.Ceil(365 * (3.0 / 7.0))
 
-	a.templates["home.html"].ExecuteTemplate(w, "base", map[string]any{
+	a.render(w, "home.html", "base", map[string]any{
 		"EventTypeCheckIn": store.EventTypeCheckIn,
 		"CheckedInToday":   checkedInToday,
 		"CurrAvgCheckIn":   currAvgCheckIn,
@@ -86,7 +86,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 
 	data["CalendarOptions"] = calendarOptions
 
-	a.templates["calendar.html"].ExecuteTemplate(w, "base", data)
+	a.render(w, "calendar.html", "base", data)
 }
 
 func (a *App) getCalendarPartial(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +103,7 @@ func (a *App) getCalendarPartial(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.templates["calendar.html"].ExecuteTemplate(w, "calendar", data)
+	a.render(w, "calendar.html", "calendar", data)
 }
 
 func (a *App) generateCalendarPartialData(year int, month time.Month) (map[string]any, error) {

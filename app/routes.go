@@ -61,9 +61,8 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 }
 
 type CalendarOption struct {
-	Month      time.Month
-	Value      date.Date
-	IsSelected bool
+	Month time.Month
+	Value date.Date
 }
 
 func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
@@ -78,9 +77,8 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 	calendarOptions := []CalendarOption{}
 	for i := time.January; i <= time.December; i++ {
 		calendarOptions = append(calendarOptions, CalendarOption{
-			Month:      i,
-			Value:      date.New(currDate.Year(), i, 1),
-			IsSelected: i == currDate.Month(),
+			Month: i,
+			Value: date.New(currDate.Year(), i, 1),
 		})
 	}
 
@@ -154,6 +152,7 @@ func (a *App) generateCalendarPartialData(year int, month time.Month) (map[strin
 
 	data := map[string]any{
 		"Calendar":         calendar,
+        "CalendarHeader":   firstOfMonthDate.Format("January 2006"),
 		"EventTypeCheckIn": store.EventTypeCheckIn,
 		"EventTypeNone":    store.EventTypeNone,
 	}

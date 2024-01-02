@@ -2,15 +2,16 @@
 <div class="flex gap-2 mb-4">
     <select 
         class="bg-white border rounded px-3 py-1.5 flex-1"
+        autocomplete="off"
         name="month"
         hx-get="/calendar/partial"
         hx-target="#calendar"
         hx-swap="innerHTML"
     >
+        <option value="" disabled selected>Select month...</option>
         {{range .CalendarOptions}}
             <option 
                 value="{{.Value}}" 
-                selected={{.IsSelected}}
             >
                 {{.Month}}
             </option>
@@ -20,6 +21,7 @@
 </div>
 <div id="calendar">
     {{block "calendar" .}}
+    <div class="mb-2 text-lg font-bold">{{.CalendarHeader}}</div>
     <div x-data="calendar">
         <div 
             class="grid grid-cols-7 gap-1 auto-rows-[2rem] text-sm mb-6"

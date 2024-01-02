@@ -31,7 +31,12 @@ func main() {
 
 	eventStore := store.NewEventStore(db)
 
-	a := app.New(eventStore)
+    templates, err := app.NewTemplates()
+	if err != nil {
+		panic(err)
+	}
+
+	a := app.New(eventStore, templates)
 
 	log.Printf("listening on port %d\n", *port)
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), a.Routes())

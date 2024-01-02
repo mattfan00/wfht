@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"html/template"
 	"math"
 	"net/http"
 	"time"
@@ -27,15 +26,6 @@ func (a *App) Routes() *chi.Mux {
 }
 
 func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles(
-		"./ui/views/base.html",
-		"./ui/views/pages/home.html",
-	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	events, err := a.eventStore.GetByCurrYear()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -61,7 +51,7 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	currAvgCheckIn := currRatio * 7
 	numDaysGoal := math.Ceil(365 * (3.0 / 7.0))
 
-	t.ExecuteTemplate(w, "base", map[string]any{
+	a.templates["home.html"].ExecuteTemplate(w, "base", map[string]any{
 		"EventTypeCheckIn": store.EventTypeCheckIn,
 		"CheckedInToday":   checkedInToday,
 		"CurrAvgCheckIn":   currAvgCheckIn,
@@ -77,15 +67,6 @@ type CalendarOption struct {
 }
 
 func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles(
-		"./ui/views/base.html",
-		"./ui/views/pages/calendar.html",
-	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	currDate := date.Today()
 
 	data, err := a.generateCalendarPartialData(currDate.Year(), currDate.Month())
@@ -105,7 +86,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 
 	data["CalendarOptions"] = calendarOptions
 
-	t.ExecuteTemplate(w, "base", data)
+	a.templates["calendar.html"].ExecuteTemplate(w, "base", data)
 }
 
 func (a *App) getCalendarPartial(w http.ResponseWriter, r *http.Request) {
@@ -116,21 +97,13 @@ func (a *App) getCalendarPartial(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := template.ParseFiles(
-		"./ui/views/pages/calendar.html",
-	)
-	if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	data, err := a.generateCalendarPartialData(d.Year(), d.Month())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	t.ExecuteTemplate(w, "calendar", data)
+	a.templates["calendar.html"].ExecuteTemplate(w, "calendar", data)
 }
 
 func (a *App) generateCalendarPartialData(year int, month time.Month) (map[string]any, error) {

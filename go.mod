@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/gorilla/schema v1.2.1 // indirect
 	github.com/govalues/decimal v0.1.16 // indirect
 	github.com/rickb777/date/v2 v2.0.9-beta // indirect
 	github.com/rickb777/period v1.0.3-beta // indirect

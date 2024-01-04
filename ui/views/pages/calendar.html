@@ -1,7 +1,7 @@
 {{define "body"}}
 <div class="flex gap-2 mb-4">
     <select 
-        class="bg-white border rounded px-3 py-1.5 flex-1"
+        class="select flex-1"
         autocomplete="off"
         name="month"
         hx-get="/calendar/partial"
@@ -22,41 +22,51 @@
 <div id="calendar">
     {{block "calendar" .}}
     <div class="mb-2 text-lg font-bold">{{.CalendarHeader}}</div>
-    <div x-data="calendar">
-        <div 
-            class="grid grid-cols-7 gap-1 auto-rows-[2rem] text-sm mb-6"
-        >
-            {{range .Calendar}}
-                {{if .Display}}
-                <div 
-                    class="flex justify-center items-center cursor-pointer rounded font-medium"
-                    :class="eventStyle({{.IsCheckIn}}, '{{.Date}}')"
-                    x-on:click="addSelected('{{.Date}}')"
-                >
-                    {{.Date.Format "2"}}
-                </div>
-                {{else}}
-                <div></div>
-                {{end}}
+    <div 
+        class="grid grid-cols-7 gap-1 auto-rows-[2rem] text-sm mb-4"
+    >
+        {{range .Calendar}}
+            {{if .Display}}
+            <div 
+                class="flex justify-center items-center cursor-pointer rounded font-medium"
+                :class="{
+                    'bg-black text-white': selected,
+                    'bg-green-300': {{.IsCheckIn}} && !selected
+                }"
+                x-data="{ selected: false }"
+                @click="selected = !selected"
+            >
+                {{.Date.Format "2"}}
+                <input 
+                    type="hidden" 
+                    name="dates" 
+                    value="{{.Date}}" 
+                    :disabled="!selected"
+                />
+            </div>
+            {{else}}
+            <div></div>
             {{end}}
-        </div>
-        <div class="flex gap-2">
-            <button
-                x-on:click="submitSelected({{.EventTypeNone}})"
-                class="btn flex-1"
-                :disabled="isDisabled"
-            >
-                Cancel
-            </button>
-            <button
-                x-on:click="submitSelected({{.EventTypeCheckIn}})"
-                class="btn btn-primary flex-1"
-                :disabled="isDisabled"
-            >
-                Check In
-            </button>
-        </div>
+        {{end}}
     </div>
     {{end}}
+</div>
+<div class="flex gap-2">
+    <select 
+        name="type"
+        class="select flex-1"
+    >
+        {{range $i, $text := .EventTypeMap}}
+        <option value={{$i}}>{{$text}}</option>
+        {{end}}
+    </select>
+    <button
+        class="btn btn-primary flex-1"
+        hx-post="/events"
+        hx-include="[name='dates'],[name='type']"
+        hx-swap="none"
+    >
+        Submit
+    </button>
 </div>
 {{end}}

@@ -13,17 +13,24 @@ type EventType int
 
 const (
 	EventTypeCheckIn EventType = iota
-	EventTypeOff
+	EventTypeOff               // disabled
 	EventTypeNone
 )
 
 func (et EventType) IsValid() bool {
 	switch et {
-	case EventTypeCheckIn, EventTypeOff, EventTypeNone:
+	case EventTypeCheckIn, EventTypeNone:
 		return true
 	}
 	return false
 }
+
+var EventTypeMap = map[EventType]string{
+	EventTypeCheckIn: "Check In",
+	EventTypeNone:    "None",
+}
+
+var test time.Month
 
 type Event struct {
 	Date      date.Date `db:"date"`

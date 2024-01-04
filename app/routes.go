@@ -1,12 +1,12 @@
 package app
 
 import (
-	"encoding/json"
 	"math"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/schema"
 	"github.com/mattfan00/wfht/store"
 	"github.com/rickb777/date/v2"
 )
@@ -20,7 +20,8 @@ func (a *App) Routes() *chi.Mux {
 	router.Get("/", a.getHomePage)
 	router.Get("/calendar", a.getCalendarPage)
 	router.Get("/calendar/partial", a.getCalendarPartial)
-	router.Post("/events", a.createEvents)
+	router.Post("/events", a.submitEvents)
+	router.Post("/events/today", a.checkInToday)
 
 	return router
 }
@@ -83,6 +84,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data["CalendarOptions"] = calendarOptions
+    data["EventTypeMap"] = store.EventTypeMap
 
 	a.render(w, "calendar.html", "base", data)
 }
@@ -151,24 +153,27 @@ func (a *App) generateCalendarPartialData(year int, month time.Month) (map[strin
 	}
 
 	data := map[string]any{
-		"Calendar":         calendar,
-        "CalendarHeader":   firstOfMonthDate.Format("January 2006"),
-		"EventTypeCheckIn": store.EventTypeCheckIn,
-		"EventTypeNone":    store.EventTypeNone,
+		"Calendar":       calendar,
+		"CalendarHeader": firstOfMonthDate.Format("January 2006"),
 	}
 
 	return data, nil
 }
 
 type EventRequest struct {
-	Dates []date.Date     `json:"dates"`
-	Type  store.EventType `json:"type"`
+	Dates []date.Date     `schema:"dates"`
+	Type  store.EventType `schema:"type"`
 }
 
-func (a *App) createEvents(w http.ResponseWriter, r *http.Request) {
-	var req EventRequest
+func (a *App) submitEvents(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	err := json.NewDecoder(r.Body).Decode(&req)
+	var req EventRequest
+	err = schema.NewDecoder().Decode(&req, r.PostForm)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -180,9 +185,9 @@ func (a *App) createEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newEvents := []store.Event{}
-	for _, date := range req.Dates {
+	for _, d := range req.Dates {
 		newEvents = append(newEvents, store.Event{
-			Date:  date,
+			Date:  d,
 			Type:  req.Type,
 			IsSys: false,
 		})
@@ -195,5 +200,22 @@ func (a *App) createEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("HX-Redirect", "/")
+	w.Write(nil)
+}
+
+func (a *App) checkInToday(w http.ResponseWriter, r *http.Request) {
+	newEvent := store.Event{
+		Date:  date.Today(),
+		Type:  store.EventTypeCheckIn,
+		IsSys: false,
+	}
+
+	err := a.eventStore.UpsertMultiple([]store.Event{newEvent})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("HX-Refresh", "true")
 	w.Write(nil)
 }

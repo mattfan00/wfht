@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"time"
@@ -29,7 +30,7 @@ func (a *App) Routes() *chi.Mux {
 func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	events, err := a.eventStore.GetByCurrYear()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.renderErrorPage(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -52,7 +53,7 @@ func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {
 	currAvgCheckIn := currRatio * 7
 	numDaysGoal := math.Ceil(365 * (3.0 / 7.0))
 
-	a.render(w, "home.html", "base", map[string]any{
+	a.renderPage(w, "home.html", map[string]any{
 		"EventTypeCheckIn": store.EventTypeCheckIn,
 		"CheckedInToday":   checkedInToday,
 		"CurrAvgCheckIn":   currAvgCheckIn,
@@ -71,7 +72,7 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 
 	data, err := a.generateCalendarPartialData(currDate.Year(), currDate.Month())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.renderErrorPage(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -84,26 +85,26 @@ func (a *App) getCalendarPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data["CalendarOptions"] = calendarOptions
-    data["EventTypeMap"] = store.EventTypeMap
+	data["EventTypeMap"] = store.EventTypeMap
 
-	a.render(w, "calendar.html", "base", data)
+	a.renderPage(w, "calendar.html", data)
 }
 
 func (a *App) getCalendarPartial(w http.ResponseWriter, r *http.Request) {
 	monthParam := r.URL.Query().Get("month")
 	d, err := date.ParseISO(monthParam)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.renderErrorTemplate(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	data, err := a.generateCalendarPartialData(d.Year(), d.Month())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.renderErrorTemplate(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	a.render(w, "calendar.html", "calendar", data)
+	a.renderTemplate(w, "calendar.html", "calendar", data)
 }
 
 func (a *App) generateCalendarPartialData(year int, month time.Month) (map[string]any, error) {
@@ -168,19 +169,19 @@ type EventRequest struct {
 func (a *App) submitEvents(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.renderErrorTemplate(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	var req EventRequest
 	err = schema.NewDecoder().Decode(&req, r.PostForm)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.renderErrorTemplate(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if !req.Type.IsValid() {
-		http.Error(w, "invalid event type", http.StatusInternalServerError)
+		a.renderErrorTemplate(w, fmt.Errorf("invalid event type"), http.StatusInternalServerError)
 		return
 	}
 
@@ -195,7 +196,7 @@ func (a *App) submitEvents(w http.ResponseWriter, r *http.Request) {
 
 	err = a.eventStore.UpsertMultiple(newEvents)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.renderErrorTemplate(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -212,7 +213,7 @@ func (a *App) checkInToday(w http.ResponseWriter, r *http.Request) {
 
 	err := a.eventStore.UpsertMultiple([]store.Event{newEvent})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.renderErrorTemplate(w, err, http.StatusInternalServerError)
 		return
 	}
 

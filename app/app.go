@@ -48,7 +48,7 @@ func NewTemplates() (map[string]*template.Template, error) {
 	return templates, nil
 }
 
-func (a *App) render(
+func (a *App) renderTemplate(
 	w http.ResponseWriter,
 	template string,
 	templateName string,
@@ -69,5 +69,23 @@ func (a *App) render(
 	}
 
 	buf.WriteTo(w)
+}
 
+func (a *App) renderPage(w http.ResponseWriter, template string, data any) {
+	a.renderTemplate(w, template, "base", data)
+}
+
+func (a *App) renderErrorTemplate(w http.ResponseWriter, e error, status int) {
+	a.renderError(w, "error", e, status)
+}
+
+func (a *App) renderErrorPage(w http.ResponseWriter, e error, status int) {
+	a.renderError(w, "base", e, status)
+}
+
+func (a *App) renderError(w http.ResponseWriter, templateName string, e error, status int) {
+	w.WriteHeader(status)
+	a.renderTemplate(w, "error.html", templateName, map[string]any{
+		"Error": e,
+	})
 }

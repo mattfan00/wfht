@@ -1,7 +1,10 @@
 {{define "body"}}
 {{block "error" .}}
-<div class="py-2 px-4 rounded bg-red-50 text-red-400">
-    <div>
+<div 
+    id="error"
+    hx-swap-oob="innerHTML"
+>
+    <div class="py-2 px-4 rounded bg-red-50 text-red-400">
         <span class="font-bold">Error:</span>
         {{.Error}}
     </div>

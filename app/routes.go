@@ -13,18 +13,51 @@ import (
 )
 
 func (a *App) Routes() *chi.Mux {
-	router := chi.NewRouter()
+	r := chi.NewRouter()
 
 	staticFileServer := http.FileServer(http.Dir("./ui/static"))
-	router.Handle("/static/*", http.StripPrefix("/static/", staticFileServer))
+	r.Handle("/static/*", http.StripPrefix("/static/", staticFileServer))
 
-	router.Get("/", a.getHomePage)
-	router.Get("/calendar", a.getCalendarPage)
-	router.Get("/calendar/partial", a.getCalendarPartial)
-	router.Post("/events", a.submitEvents)
-	router.Post("/events/today", a.checkInToday)
+	r.Group(func(r chi.Router) {
+		r.Use(a.recoverPanic)
+		r.Use(a.sessionManager.LoadAndSave)
 
-	return router
+		r.Get("/login", a.getLoginPage)
+		r.Post("/login", a.login)
+
+		r.Group(func(r chi.Router) {
+			r.Use(a.requireAuth)
+
+			r.Get("/", a.getHomePage)
+			r.Get("/calendar", a.getCalendarPage)
+			r.Get("/calendar/partial", a.getCalendarPartial)
+			r.Post("/events", a.submitEvents)
+			r.Post("/events/today", a.checkInToday)
+		})
+	})
+
+	return r
+}
+
+func (a *App) getLoginPage(w http.ResponseWriter, r *http.Request) {
+	good := a.sessionManager.GetBool(r.Context(), "good")
+	if good {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	a.renderPage(w, "login.html", nil)
+}
+
+func (a *App) login(w http.ResponseWriter, r *http.Request) {
+	passwordInput := r.PostFormValue("password")
+	if passwordInput != "hi" {
+		a.renderErrorTemplate(w, fmt.Errorf("incorrect password"), http.StatusBadRequest)
+		return
+	}
+
+	a.sessionManager.Put(r.Context(), "good", true)
+	w.Header().Add("HX-Redirect", "/")
 }
 
 func (a *App) getHomePage(w http.ResponseWriter, r *http.Request) {

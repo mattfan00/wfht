@@ -6,21 +6,25 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/mattfan00/wfht/store"
 )
 
 type App struct {
-	eventStore *store.EventStore
-	templates  map[string]*template.Template
+	eventStore     *store.EventStore
+	templates      map[string]*template.Template
+	sessionManager *scs.SessionManager
 }
 
 func New(
 	eventStore *store.EventStore,
 	templates map[string]*template.Template,
+	sessionManager *scs.SessionManager,
 ) *App {
 	return &App{
-		eventStore: eventStore,
-		templates:  templates,
+		eventStore:     eventStore,
+		templates:      templates,
+		sessionManager: sessionManager,
 	}
 }
 

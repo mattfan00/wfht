@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/alexedwards/scs/v2"
+	"github.com/alexedwards/scs/v2/memstore"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattfan00/wfht/app"
 	"github.com/mattfan00/wfht/config"
@@ -31,12 +34,20 @@ func main() {
 
 	eventStore := store.NewEventStore(db)
 
-    templates, err := app.NewTemplates()
+	templates, err := app.NewTemplates()
 	if err != nil {
 		panic(err)
 	}
 
-	a := app.New(eventStore, templates)
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+	sessionManager.Store = memstore.New()
+
+	a := app.New(
+		eventStore,
+		templates,
+		sessionManager,
+	)
 
 	log.Printf("listening on port %d\n", *port)
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), a.Routes())

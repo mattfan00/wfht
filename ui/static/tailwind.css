@@ -2,22 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-a {
-    @apply text-blue-400 underline
+@layer base {
+    a {
+        @apply text-blue-400 underline
+    }
+
+    button:disabled {
+        @apply pointer-events-none opacity-50;
+    }
 }
 
-.btn { 
-    @apply px-3 py-1.5 rounded
-}
+@layer components {
+    .btn { 
+        @apply px-3 py-1.5 rounded
+    }
 
-.btn-primary {
-    @apply bg-gray-100
-}
+    .btn-primary {
+        @apply bg-gray-100
+    }
 
-button:disabled {
-    @apply pointer-events-none opacity-50;
-}
+    .select {
+        @apply bg-white border rounded px-3 py-1.5 leading-4
+    }
 
-.select {
-    @apply bg-white border rounded px-3 py-1.5
+    .input {
+        @apply bg-white border rounded px-3 py-1.5 leading-4
+    }
 }

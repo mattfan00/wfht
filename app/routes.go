@@ -51,7 +51,7 @@ func (a *App) getLoginPage(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	passwordInput := r.PostFormValue("password")
-	if passwordInput != "hi" {
+	if passwordInput != a.config.Password {
 		a.renderErrorTemplate(w, fmt.Errorf("incorrect password"), http.StatusBadRequest)
 		return
 	}

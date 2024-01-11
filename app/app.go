@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/alexedwards/scs/v2"
+	configPkg "github.com/mattfan00/wfht/config"
 	"github.com/mattfan00/wfht/store"
 )
 
@@ -14,17 +15,20 @@ type App struct {
 	eventStore     *store.EventStore
 	templates      map[string]*template.Template
 	sessionManager *scs.SessionManager
+	config         *configPkg.Config
 }
 
 func New(
 	eventStore *store.EventStore,
 	templates map[string]*template.Template,
 	sessionManager *scs.SessionManager,
+    config *configPkg.Config,
 ) *App {
 	return &App{
 		eventStore:     eventStore,
 		templates:      templates,
 		sessionManager: sessionManager,
+        config: config,
 	}
 }
 

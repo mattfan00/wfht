@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	DbConn string `yaml:"db_conn"`
+	Password string `yaml:"password"`
 }
 
 func ReadFile(src string) (*Config, error) {

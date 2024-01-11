@@ -47,6 +47,7 @@ func main() {
 		eventStore,
 		templates,
 		sessionManager,
+		conf,
 	)
 
 	log.Printf("listening on port %d\n", *port)

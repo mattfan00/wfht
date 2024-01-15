@@ -3,9 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"math"
-	"os"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -14,23 +12,47 @@ import (
 	"github.com/rickb777/date/v2"
 )
 
+type migrationProgram struct {
+	fs         *flag.FlagSet
+	args       []string
+	configPath string
+}
+
+func newMigrationProgram(args []string) *migrationProgram {
+	fs := flag.NewFlagSet("migration", flag.ContinueOnError)
+	configPath := fs.String("c", "./config.yaml", "path to config file")
+
+	return &migrationProgram{
+		fs:         fs,
+		args:       args,
+		configPath: *configPath,
+	}
+}
+
+func (m *migrationProgram) parse() error {
+	return m.fs.Parse(m.args)
+}
+
+func (m *migrationProgram) name() string {
+	return m.fs.Name()
+}
+
 var db *sqlx.DB
 
-func main() {
-	if len(os.Args) != 2 {
-		panic("incorrect num of args")
+func (m *migrationProgram) run() error {
+	if len(m.args) != 1 {
+		return fmt.Errorf("incorrect num of args")
 	}
 
-	configPath := flag.String("c", "./config.yaml", "path to config file")
-	conf, err := config.ReadFile(*configPath)
+	conf, err := config.ReadFile(m.configPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	action := os.Args[1]
+	action := m.args[0]
 
 	db = sqlx.MustConnect("sqlite3", conf.DbConn)
-	log.Printf("connected to DB: %s\n", conf.DbConn)
+	fmt.Printf("connected to DB: %s\n", conf.DbConn)
 
 	switch action {
 	case "create":
@@ -38,6 +60,8 @@ func main() {
 	case "mock":
 		mock()
 	}
+
+	return err
 }
 
 func create() {
@@ -49,13 +73,14 @@ func create() {
             updated_on DATETIME NOT NULL
         )
     `)
+	fmt.Println("created 'event' table")
 }
 
 func mock() {
 	db.MustExec("DELETE FROM event WHERE is_sys = true")
 
-    currDay := date.Today()
-    currTime := time.Now()
+	currDay := date.Today()
+	currTime := time.Now()
 
 	ratio := 3.0 / 7.0
 	numDaysSoFar := currDay.YearDay()
@@ -63,13 +88,13 @@ func mock() {
 
 	currYear := currDay.Year()
 
-    d := date.New(currYear, 1, 1)
+	d := date.New(currYear, 1, 1)
 	for i := 0; i < numDays; i++ {
 		db.MustExec(`
             INSERT INTO event (date, type, is_sys, updated_on)
             VALUES ($1, $2, $3, $4)
         `, d, 0, true, currTime)
-        d = d + 1
+		d = d + 1
 	}
 
 	fmt.Println(ratio)

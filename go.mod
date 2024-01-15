@@ -7,7 +7,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/gorilla/schema v1.2.1
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/mattn/go-sqlite3 v1.14.17
+	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/rickb777/date/v2 v2.0.9-beta
 	gopkg.in/yaml.v3 v3.0.1
 )

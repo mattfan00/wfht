@@ -1,0 +1,11 @@
+tmp/
+
+ui/node_modules/
+ui/static/index.css
+
+config.yaml
+
+.git
+.gitignore
+
+.air.toml

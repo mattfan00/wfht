@@ -19,14 +19,15 @@ type migrationProgram struct {
 }
 
 func newMigrationProgram(args []string) *migrationProgram {
-	fs := flag.NewFlagSet("migration", flag.ContinueOnError)
-	configPath := fs.String("c", "./config.yaml", "path to config file")
-
-	return &migrationProgram{
-		fs:         fs,
-		args:       args,
-		configPath: *configPath,
+	fs := flag.NewFlagSet("migration", flag.ExitOnError)
+	m := &migrationProgram{
+		fs:   fs,
+		args: args,
 	}
+
+	fs.StringVar(&m.configPath, "c", "./config.yaml", "path to config file")
+
+	return m
 }
 
 func (m *migrationProgram) parse() error {
@@ -40,7 +41,7 @@ func (m *migrationProgram) name() string {
 var db *sqlx.DB
 
 func (m *migrationProgram) run() error {
-	if len(m.args) != 1 {
+	if len(m.fs.Args()) != 1 {
 		return fmt.Errorf("incorrect num of args")
 	}
 
@@ -49,7 +50,7 @@ func (m *migrationProgram) run() error {
 		return err
 	}
 
-	action := m.args[0]
+	action := m.fs.Arg(0)
 
 	db = sqlx.MustConnect("sqlite3", conf.DbConn)
 	fmt.Printf("connected to DB: %s\n", conf.DbConn)

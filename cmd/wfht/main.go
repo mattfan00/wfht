@@ -6,7 +6,7 @@ import (
 )
 
 type program interface {
-    name() string
+	name() string
 	parse() error
 	run() error
 }
@@ -28,7 +28,10 @@ func run() error {
 	input := os.Args[1]
 	for _, prog := range programs {
 		if input == prog.name() {
-			prog.parse()
+			err := prog.parse()
+			if err != nil {
+				return err
+			}
 			return prog.run()
 		}
 	}

@@ -22,14 +22,15 @@ type appProgram struct {
 }
 
 func newAppProgram(args []string) *appProgram {
-	fs := flag.NewFlagSet("app", flag.ContinueOnError)
-	configPath := fs.String("c", "./config.yaml", "path to config file")
-
-	return &appProgram{
-		fs:         fs,
-		args:       args,
-		configPath: *configPath,
+	fs := flag.NewFlagSet("app", flag.ExitOnError)
+	a := &appProgram{
+		fs:   fs,
+		args: args,
 	}
+
+	fs.StringVar(&a.configPath, "c", "./config.yaml", "path to config file")
+
+	return a
 }
 
 func (a *appProgram) parse() error {

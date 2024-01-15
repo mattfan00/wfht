@@ -6,7 +6,7 @@ import (
 )
 
 type program interface {
-	name() string
+    name() string
 	parse() error
 	run() error
 }
